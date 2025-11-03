@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    
+    <title>Multifunction QR Code Machine - Generator & Scanner QR Code / Barcode Fleksibel</title>
+    <meta name="description" content="Buat QR Code dan Barcode dengan mudah, cepat, dan fleksibel. Tambahkan logo kustom di tengah QR Code untuk branding. Fitur Scanner terintegrasi!">
+    <meta name="keywords" content="QR Code Generator, Barcode Generator, Scanner QR, QR Code Logo, Multifunction Qrcode Machine, Buat QR Code">
+    <meta name="author" content="Tim Developer Multifunction Qrcode Machine">
+
+    <link rel="stylesheet" href="style.css">
+    
+    <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
+    
+    <script src="https://cdn.jsdelivr.com/npm/jsbarcode@3.11.6/dist/JsBarcode.all.min.js"></script>
+    
+    <script src="https://unpkg.com/html5-qrcode@2.3.4/minified/html5-qrcode.min.js"></script>
+    
+</head>
+<body>
+
+    <main class="container">
+        <nav class="tabs">
+            <button class="tab-button active" data-tab="generator">Pembuatan Kode (Generator)</button>
+            <button class="tab-button" data-tab="scanner">Pindai Kode (Scanner)</button> 
+        </nav>
+        
+        <section id="generator" class="content-area active">
+            <h2>Pembuatan QR Code & Barcode Fleksibel</h2>
+            <p>Pilih jenis kode yang ingin dibuat dan masukkan data yang sesuai.</p>
+            
+            <nav class="code-tabs"> 
+                <button class="code-tab-button active" data-code-type="qr">QR Code</button>
+                <button class="code-tab-button" data-code-type="barcode">Barcode</button>
+            </nav>
+            
+            <div id="generator-qr" class="code-generator-content active">
+                
+                <nav class="sub-tabs">
+                    <button class="sub-tab-button active" data-input="text">Teks / URL</button>
+                    <button class="sub-tab-button" data-input="image">Gambar (Beta)</button>
+                </nav>
+                
+                <div id="input-text" class="input-content active">
+                    <div class="input-group">
+                        <label for="qr-input-text">Data QR Code:</label>
+                        <input type="text" id="qr-input-text" placeholder="Masukkan Tautan/Teks (Contoh: https://gemini.google.com)">
+                    </div>
+                </div>
+
+                <div id="input-image" class="input-content">
+                    <div class="input-group">
+                        <label class="file-label" for="qr-input-image">
+                            Pilih Gambar (JPG/PNG, Maks. 50 KB)
+                        </label>
+                        <input type="file" id="qr-input-image" accept="image/png, image/jpeg" style="display: none;">
+                        <span id="file-name-display" class="file-status">Belum ada file dipilih.</span>
+                        <p class="warning-text">⚠️ Perhatian: Gambar besar akan menghasilkan QR Code yang sangat kompleks dan mungkin sulit dipindai.</p>
+                    </div>
+                </div>
+            </div> 
+            
+            <div id="generator-barcode" class="code-generator-content">
+                <div class="input-group">
+                    <label for="barcode-input-text">Data Barcode (Angka/Alfanumerik):</label>
+                    <input type="text" id="barcode-input-text" placeholder="Masukkan data Barcode (misalnya: 123456789012)">
+                </div>
+
+                <div class="input-group">
+                    <label for="barcode-format">Format Barcode:</label>
+                    <select id="barcode-format">
+                        <option value="CODE128">CODE128 (Umum)</option>
+                        <option value="EAN13">EAN13 (Produk)</option>
+                        <option value="CODE39">CODE39 (Alfanumerik)</option>
+                        <option value="ITF14">ITF14 (Kemasan/Karton)</option>
+                    </select>
+                </div>
+            </div> 
+            
+            <hr>
+            
+            <h3>Kontrol Desain</h3>
+            <div id="design-controls" class="controls-group"> 
+                
+                <div class="control-section">
+                    <h4>Visual & Ukuran</h4>
+                    <div class="control-item">
+                        <label for="qr-size">Ukuran (px):</label>
+                        <input type="number" id="qr-size" value="256" min="100" max="500">
+                    </div>
+                    
+                    <div class="control-item">
+                        <label for="qr-color">Warna Kode:</label>
+                        <input type="color" id="qr-color" value="#000000">
+                    </div>
+                </div>
+                
+                <div class="control-section">
+                    <h4>Spasi & Logo (Hanya QR Code)</h4>
+                    <div class="control-item">
+                        <label for="qr-margin">Margin (px):</label>
+                        <input type="number" id="qr-margin" value="4" min="0" max="20">
+                    </div>
+                    
+                    <div class="input-group logo-input-group"> 
+                        <label class="file-label-logo" for="qr-input-logo">
+                            Pilih Logo (Max 100 KB)
+                        </label>
+                        <input type="file" id="qr-input-logo" accept="image/png, image/jpeg" style="display: none;">
+                        <span id="logo-file-name-display" class="file-status">Belum ada logo dipilih.</span>
+                        <p class="warning-text logo-warning-text">⚠️ Logo akan menutupi bagian tengah QR Code. Gunakan tingkat error correction tinggi (H).</p>
+                    </div>
+                    </div>
+                
+            </div>
+            
+            <hr>
+
+            <button id="generate-btn" class="main-button">Buat Kode 🚀</button>
+            
+            <div id="qr-code-output" class="qr-output-container"> 
+                <p>Kode Anda akan muncul di sini.</p>
+            </div>
+            <button id="download-btn" class="sub-button" disabled style="display: none;">📥 Unduh Kode</button>
+        </section>
+
+        <section id="scanner" class="content-area">
+            <h2>Pindai Kode (QR & Barcode)</h2>
+            <p>Arahkan kamera ke QR Code atau Barcode untuk memindai isinya.</p>
+            <div id="scanner-feed"></div> 
+        </section>
+
+    </main>
+    
+    <script src="script.js"></script>
+</body>
+</html>

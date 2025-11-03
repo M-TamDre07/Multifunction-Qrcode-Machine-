@@ -1,0 +1,533 @@
+/* Reset Dasar */
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+/* Import Font */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
+/* Variabel CSS untuk Kustomisasi Mudah */
+:root {
+    /* Palet Warna */
+    --primary-color: #007bff; /* Biru cerah untuk aksi utama */
+    --secondary-color: #28a745; /* Hijau untuk tombol Generate */
+    --tertiary-color: #6c757d; /* Abu-abu untuk teks / batas */
+    --background-light: #f7f9fc; /* Latar belakang aplikasi yang sangat ringan */
+    --container-bg: #ffffff;
+    --text-dark: #212529;
+    --text-muted: #6c757d;
+    --border-light: #e9ecef; /* Border yang sangat halus */
+    --shadow-base: rgba(0, 0, 0, 0.1); /* Bayangan modern */
+    --warning-red: #dc3545;
+    --logo-color: #ffc107; /* Warna baru untuk tombol logo */
+}
+
+body {
+    font-family: 'Inter', sans-serif;
+    background-color: var(--background-light);
+    display: flex;
+    justify-content: center;
+    align-items: center; 
+    min-height: 100vh;
+    padding: 30px 20px; 
+    line-height: 1.6;
+    color: var(--text-dark);
+}
+
+/* Container Utama */
+.container {
+    background-color: var(--container-bg);
+    border-radius: 20px; 
+    box-shadow: 0 15px 40px var(--shadow-base), 0 5px 10px rgba(0, 0, 0, 0.05); 
+    width: 100%;
+    max-width: 650px; 
+    padding: 40px;
+    transition: all 0.3s ease-in-out;
+}
+
+/* Judul dan Sub-Judul */
+h2 {
+    color: var(--primary-color);
+    margin-bottom: 10px;
+    font-size: 1.8em;
+    font-weight: 700;
+    letter-spacing: -0.5px;
+}
+
+h3 {
+    color: var(--text-dark);
+    margin-top: 30px;
+    margin-bottom: 15px;
+    font-size: 1.3em;
+    font-weight: 600;
+    border-left: 4px solid var(--primary-color);
+    padding-left: 10px;
+}
+
+h4 {
+    color: var(--text-dark);
+    font-size: 1.1em;
+    font-weight: 600;
+    margin-bottom: 15px;
+    padding-bottom: 5px;
+    border-bottom: 1px solid var(--border-light);
+}
+
+p {
+    color: var(--text-muted);
+    margin-bottom: 20px;
+}
+
+hr {
+    border: none;
+    border-top: 1px solid var(--border-light);
+    margin: 30px 0;
+}
+
+/* Area Konten */
+.content-area:not(.active) {
+    display: none;
+}
+
+/* --- NAVIGASI TAB UTAMA (Generator/Scanner) --- */
+.tabs {
+    display: flex;
+    margin-bottom: 30px;
+    background-color: var(--border-light);
+    border-radius: 12px;
+    padding: 5px;
+}
+
+.tab-button {
+    flex-grow: 1;
+    padding: 15px 15px;
+    border: none;
+    background-color: transparent;
+    cursor: pointer;
+    font-size: 1em;
+    font-weight: 600;
+    color: var(--text-muted);
+    border-radius: 10px; 
+    transition: all 0.3s ease; 
+}
+
+.tab-button.active {
+    background-color: var(--container-bg); 
+    color: var(--primary-color);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+}
+
+.tab-button:hover:not(.active) {
+    color: var(--text-dark);
+}
+
+/* --- NAVIGASI TAB JENIS KODE (QR Code/Barcode) --- */
+.code-tabs {
+    display: flex;
+    margin-bottom: 25px;
+    gap: 15px;
+}
+
+.code-tab-button {
+    padding: 10px 20px;
+    border: 2px solid var(--border-light);
+    background-color: transparent;
+    cursor: pointer;
+    font-size: 1em;
+    font-weight: 500;
+    color: var(--text-dark);
+    border-radius: 8px;
+    transition: all 0.3s ease;
+}
+
+.code-tab-button.active {
+    background-color: var(--primary-color);
+    color: white;
+    border-color: var(--primary-color);
+    font-weight: 600;
+}
+
+.code-tab-button:hover:not(.active) {
+    border-color: var(--primary-color);
+}
+
+/* Konten Generator QR/Barcode */
+.code-generator-content:not(.active) {
+    display: none;
+}
+
+/* --- NAVIGASI SUB-TAB INPUT (Teks/URL & Gambar) --- */
+.sub-tabs {
+    display: flex;
+    margin-bottom: 20px;
+    gap: 20px;
+}
+
+.sub-tab-button {
+    padding: 8px 0;
+    border: none;
+    background-color: transparent;
+    cursor: pointer;
+    font-size: 1em;
+    font-weight: 500;
+    color: var(--text-muted);
+    transition: color 0.3s, border-bottom 0.3s;
+    border-bottom: 3px solid transparent;
+}
+
+.sub-tab-button.active {
+    color: var(--primary-color);
+    font-weight: 600;
+    border-bottom: 3px solid var(--primary-color);
+}
+
+/* Area Input Konten */
+.input-content:not(.active) {
+    display: none;
+}
+
+.input-group {
+    margin-bottom: 25px;
+    width: 100%;
+}
+
+.input-group label {
+    display: block;
+    font-weight: 600;
+    color: var(--text-dark);
+    margin-bottom: 10px;
+    font-size: 0.95em;
+}
+
+/* Style untuk semua input teks dan select */
+#qr-input-text, #barcode-input-text, #barcode-format {
+    width: 100%;
+    padding: 15px;
+    font-size: 1em;
+    border: 1px solid var(--border-light); 
+    border-radius: 10px;
+    transition: border-color 0.3s, box-shadow 0.3s;
+    background-color: var(--background-light); 
+    color: var(--text-dark);
+}
+
+#qr-input-text:focus, #barcode-input-text:focus, #barcode-format:focus {
+    border-color: var(--primary-color);
+    outline: none;
+    box-shadow: 0 0 0 4px rgba(0, 123, 255, 0.15); 
+    background-color: var(--container-bg);
+}
+
+/* --- STYLE UNTUK INPUT GAMBAR --- */
+.file-label, .file-label-logo {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    width: 100%;
+    padding: 15px; 
+    
+    border-radius: 10px;
+    cursor: pointer;
+    font-weight: bold;
+    transition: background-color 0.3s, transform 0.1s, box-shadow 0.3s;
+}
+
+/* Style untuk label input Gambar Data QR (Biru Primer) */
+.file-label {
+    background-color: var(--primary-color); 
+    color: white;
+}
+
+.file-label:hover {
+    background-color: #0056b3;
+    box-shadow: 0 5px 15px rgba(0, 123, 255, 0.3);
+}
+
+/* ⭐ STYLE BARU: Label input Logo (Kuning Sekunder) */
+.file-label-logo {
+    background-color: var(--logo-color); 
+    color: var(--text-dark);
+    box-shadow: 0 5px 15px rgba(255, 193, 7, 0.1);
+}
+
+.file-label-logo:hover {
+    background-color: #e0a800;
+    box-shadow: 0 5px 15px rgba(255, 193, 7, 0.3);
+}
+
+
+.file-status {
+    display: block;
+    text-align: center;
+    font-size: 0.9em;
+    color: var(--text-muted);
+    padding: 10px 0;
+    margin-top: 5px;
+}
+
+.warning-text {
+    font-size: 0.9em; 
+    color: var(--warning-red); 
+    background-color: rgba(220, 53, 69, 0.05);
+    padding: 12px;
+    border-left: 4px solid var(--warning-red);
+    border-radius: 8px;
+    margin-top: 15px;
+    font-style: italic;
+}
+
+.logo-warning-text {
+    margin-top: 10px;
+    padding: 8px 12px;
+}
+
+/* --- KONTROL DESAIN --- */
+.controls-group {
+    display: flex;
+    gap: 30px; 
+    padding: 15px 0;
+    margin-bottom: 10px;
+    flex-wrap: wrap;
+}
+
+.control-section {
+    flex: 1;
+    min-width: 45%; 
+    padding: 10px;
+    border: 1px solid var(--border-light);
+    border-radius: 10px;
+    background-color: var(--background-light);
+}
+
+.control-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between; 
+    margin-bottom: 15px;
+}
+
+.control-item label {
+    font-weight: 500;
+    color: var(--text-dark);
+    margin-bottom: 0;
+}
+
+/* Style input number dan color */
+.controls-group input[type="number"],
+.controls-group input[type="color"] {
+    border: 1px solid var(--tertiary-color);
+    border-radius: 6px;
+    transition: border-color 0.3s;
+    outline: none;
+    background-color: white;
+}
+
+.controls-group input[type="number"] {
+    width: 80px;
+    padding: 8px;
+    text-align: center;
+    font-weight: 600;
+}
+
+.controls-group input[type="color"] {
+    width: 45px; 
+    height: 35px;
+    padding: 3px; 
+    cursor: pointer;
+    box-shadow: inset 0 0 5px rgba(0, 0, 0, 0.1);
+}
+
+
+/* --- TOMBOL Aksi --- */
+.main-button, .sub-button {
+    width: 100%;
+    padding: 18px; 
+    border: none;
+    border-radius: 12px;
+    cursor: pointer;
+    font-size: 1.15em;
+    font-weight: 700;
+    transition: all 0.3s ease;
+    margin-bottom: 15px;
+    letter-spacing: 0.8px;
+    text-transform: uppercase;
+}
+
+.main-button {
+    background-color: var(--secondary-color);
+    color: white;
+    box-shadow: 0 5px 15px rgba(40, 167, 69, 0.2);
+}
+
+.main-button:hover {
+    background-color: #1e8433;
+    box-shadow: 0 8px 25px rgba(40, 167, 69, 0.3);
+    transform: translateY(-3px);
+}
+
+.sub-button {
+    background-color: var(--primary-color);
+    color: white;
+    box-shadow: 0 5px 15px rgba(0, 123, 255, 0.2);
+}
+
+.sub-button:hover:not(:disabled) {
+    background-color: #0056b3;
+    box-shadow: 0 8px 25px rgba(0, 123, 255, 0.3);
+    transform: translateY(-3px);
+}
+
+.sub-button:disabled {
+    background-color: var(--border-light);
+    color: var(--text-muted);
+    cursor: not-allowed;
+    box-shadow: none;
+    transform: none;
+    opacity: 0.6;
+}
+
+/* --- Area Kode Output (Untuk QR Code dan Barcode) --- */
+#qr-code-output {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 280px; 
+    margin: 30px 0 20px 0;
+    padding: 20px;
+    background-color: var(--container-bg);
+    border: 2px solid var(--border-light);
+    border-radius: 15px;
+    text-align: center;
+    color: var(--text-muted);
+    font-style: italic;
+    font-weight: 500;
+    transition: all 0.5s ease-in-out;
+    position: relative; /* Wajib: Untuk memposisikan logo di tengah */
+}
+
+/* Tampilan ketika output kosong */
+#qr-code-output p {
+    margin: 0;
+    padding: 20px;
+}
+
+/* Tampilan untuk Canvas QR Code */
+#qr-code-output canvas {
+    max-width: 100%; 
+    height: auto;
+    display: block;
+    border-radius: 8px;
+    box-shadow: 0 5px 20px rgba(0, 0, 0, 0.15); 
+    border: 1px solid var(--border-light);
+    position: relative; /* Agar logo bisa diposisikan di atasnya */
+}
+
+/* Tampilan untuk SVG Barcode */
+#qr-code-output svg {
+    max-width: 100%; 
+    height: auto;
+    display: block;
+    border-radius: 8px;
+    box-shadow: 0 5px 20px rgba(0, 0, 0, 0.15); 
+    border: 1px solid var(--border-light);
+    padding: 10px; 
+    background-color: white;
+}
+
+/* ⭐ STYLE BARU: Logo di Tengah QR Code */
+.qr-logo {
+    position: absolute;
+    top: 50%;
+    left: 50%; 
+    transform: translate(-50%, -50%); /* Memastikan posisi tepat di tengah */
+    z-index: 10; /* Logo berada di lapisan teratas */
+    
+    /* Styling Visual Logo */
+    border-radius: 10%; 
+    background-color: white; /* Padding putih di sekeliling logo */
+    padding: 5px; 
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+    
+    /* Ukuran akan dikontrol via JavaScript, tetapi ini adalah batasnya */
+    max-width: 20%; 
+    max-height: 20%;
+    object-fit: contain; /* Memastikan gambar logo tidak terdistorsi */
+}
+
+/* --- Area Scanner --- */
+#scanner-feed {
+    width: 100%;
+    min-height: 350px; 
+    background-color: #343a40; 
+    border-radius: 15px;
+    overflow: hidden;
+    position: relative;
+    box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.8);
+    margin-top: 20px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+}
+
+/* Styling untuk elemen yang diinjeksikan oleh html5-qrcode */
+#scanner-feed > div {
+    border-radius: 15px;
+    width: 100%;
+    height: 100%;
+    position: absolute;
+    top: 0;
+    left: 0;
+}
+
+/* Styling untuk pesan feedback scanner */
+#scanner-feed > div:not(.html5-qrcode-element) {
+    position: relative;
+    color: white;
+    padding: 20px;
+    width: 90%;
+}
+
+
+/* --- RESPONSIVITAS --- */
+@media (max-width: 700px) {
+    body {
+        padding: 15px;
+        align-items: flex-start;
+    }
+    .container {
+        padding: 25px;
+        border-radius: 15px;
+        max-width: 100%;
+    }
+    
+    h2 {
+        font-size: 1.5em;
+    }
+    
+    .controls-group {
+        flex-direction: column; 
+        gap: 20px;
+    }
+    
+    .control-section {
+        min-width: 100%;
+    }
+
+    .sub-tabs {
+        gap: 10px;
+        justify-content: space-around;
+    }
+    .sub-tab-button {
+        flex: 1;
+        text-align: center;
+    }
+
+    .tab-button, .code-tab-button, .main-button, .sub-button {
+        font-size: 0.95em;
+        padding: 12px 10px;
+    }
+}
