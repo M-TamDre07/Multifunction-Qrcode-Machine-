@@ -19,10 +19,9 @@ const elements = {
     qrInputImage: document.getElementById('qr-input-image'),
     fileNameDisplay: document.getElementById('file-name-display'),
     
-    // ⭐ ELEMEN BARU: Input Logo
+    // ⭐ ELEMEN LOGO (BARU)
     qrInputLogo: document.getElementById('qr-input-logo'),
     logoFileNameDisplay: document.getElementById('logo-file-name-display'),
-    logoControlSection: document.querySelector('.control-section:nth-child(2)'), // Bagian Kontrol Spasi & Logo
     
     // Input Barcode
     barcodeInputText: document.getElementById('barcode-input-text'),
@@ -43,7 +42,7 @@ const elements = {
 const { 
     generateBtn, downloadBtn, qrCodeOutput, qrSizeInput, qrColorInput, 
     qrMarginInput, qrInputText, qrInputImage, fileNameDisplay, qrInputLogo, 
-    logoFileNameDisplay, logoControlSection, barcodeInputText, barcodeFormat, 
+    logoFileNameDisplay, barcodeInputText, barcodeFormat, 
     tabButtons, contentAreas, codeTabButtons, generatorContents, subTabButtons, 
     inputContents, scannerFeed 
 } = elements;
@@ -55,9 +54,11 @@ let html5QrcodeScanner = null;
 let activeInputType = 'text'; 
 let activeCodeType = 'qr';    
 let imageDataBase64 = null; // Data untuk Gambar di QR Code
-let logoDataBase64 = null; // ⭐ Data Logo di tengah QR Code (BARU)
-const MAX_SIZE_BYTES_QR_DATA = 50 * 1024; // 50 KB
-const MAX_SIZE_BYTES_LOGO = 100 * 1024; // ⭐ 100 KB untuk Logo (BARU)
+let logoDataBase64 = null; // Data Logo di tengah QR Code
+
+// ⬆️ PENINGKATAN MAKSIMAL UKURAN FILE:
+const MAX_SIZE_BYTES_QR_DATA = 200 * 1024; // 200 KB (Ditingkatkan dari 50 KB)
+const MAX_SIZE_BYTES_LOGO = 500 * 1024;   // 500 KB (Ditingkatkan dari 100 KB)
 
 // =================================================================
 // 1. MODUL: GENERATOR (QR & BARCODE)
@@ -66,7 +67,7 @@ const MAX_SIZE_BYTES_LOGO = 100 * 1024; // ⭐ 100 KB untuk Logo (BARU)
 const CodeGenerator = (function() {
 
     function clearOutput(message = 'Kode Anda akan muncul di sini.') {
-        // Hapus SEMUA elemen anak, termasuk logo
+        // Hapus SEMUA elemen anak, termasuk logo dan canvas/svg
         while (qrCodeOutput.firstChild) {
             qrCodeOutput.removeChild(qrCodeOutput.firstChild);
         }
@@ -74,6 +75,8 @@ const CodeGenerator = (function() {
         // Tambahkan kembali pesan placeholder
         const placeholder = document.createElement('p');
         placeholder.textContent = message;
+        placeholder.style.textAlign = 'center';
+        placeholder.style.color = '#6c757d';
         qrCodeOutput.appendChild(placeholder);
         
         downloadBtn.style.display = 'none';
@@ -81,18 +84,22 @@ const CodeGenerator = (function() {
         qrcodeInstance = null; 
     }
 
-    // --- QR CODE LOGIC ---
+    // --- LOGIKA ASYNC FILE TO BASE64 (Ditingkatkan) ---
 
     /**
-     * ⭐ BARU: Mengonversi berkas logo menjadi string Base64 dengan validasi.
+     * Mengonversi berkas menjadi string Base64 dengan validasi ukuran.
+     * @param {File} file - Objek file.
+     * @param {number} maxSize - Ukuran maksimal (bytes).
+     * @param {HTMLElement} displayElement - Elemen untuk menampilkan nama file/status.
+     * @param {string} type - 'data' atau 'logo' untuk pesan kesalahan.
      */
-    async function fileToBase64Logo(file) {
+    async function fileToBase64(file, maxSize, displayElement, type) {
         return new Promise((resolve, reject) => {
-            if (file.size > MAX_SIZE_BYTES_LOGO) {
-                alert(`⚠️ Ukuran logo terlalu besar (${(file.size / 1024).toFixed(1)} KB). Maksimal adalah 100 KB.`);
-                qrInputLogo.value = ""; 
-                logoFileNameDisplay.textContent = "Batasan ukuran dilampaui. Pilih file yang lebih kecil.";
-                logoDataBase64 = null;
+            const typeName = type === 'data' ? 'Gambar Data' : 'Logo';
+            if (file.size > maxSize) {
+                const maxSizeKB = (maxSize / 1024).toFixed(0);
+                alert(`⚠️ Ukuran ${typeName} terlalu besar (${(file.size / 1024).toFixed(1)} KB). Maksimal adalah ${maxSizeKB} KB.`);
+                displayElement.textContent = `Batasan ukuran (${maxSizeKB} KB) dilampaui. Pilih file yang lebih kecil.`;
                 reject(new Error("File too large"));
                 return;
             }
@@ -100,21 +107,20 @@ const CodeGenerator = (function() {
             const reader = new FileReader();
             
             reader.onloadstart = () => {
-                logoFileNameDisplay.textContent = `Memproses... ${(file.size / 1024).toFixed(1)} KB.`;
+                displayElement.textContent = `Memproses... ${(file.size / 1024).toFixed(1)} KB.`;
                 generateBtn.disabled = true;
             };
 
             reader.onload = () => {
-                logoDataBase64 = reader.result;
-                logoFileNameDisplay.textContent = `Logo Terpilih: ${file.name}`; 
+                const base64String = reader.result;
+                displayElement.textContent = `${typeName} Terpilih: ${file.name}`; 
                 generateBtn.disabled = false;
-                resolve(reader.result);
+                resolve(base64String);
             };
 
             reader.onerror = (error) => {
                 console.error("Gagal membaca file:", error);
-                logoDataBase64 = null;
-                logoFileNameDisplay.textContent = "Gagal memproses file.";
+                displayElement.textContent = `Gagal memproses ${typeName} (${file.name}).`;
                 generateBtn.disabled = false;
                 reject(error);
             };
@@ -123,45 +129,7 @@ const CodeGenerator = (function() {
         });
     }
 
-    /**
-     * Mengonversi berkas gambar data QR menjadi string Base64 dengan validasi (Tetap).
-     */
-    async function fileToBase64(file) {
-        return new Promise((resolve, reject) => {
-            if (file.size > MAX_SIZE_BYTES_QR_DATA) {
-                alert(`⚠️ Ukuran file terlalu besar (${(file.size / 1024).toFixed(1)} KB). Maksimal adalah 50 KB.`);
-                qrInputImage.value = ""; 
-                fileNameDisplay.textContent = "Batasan ukuran dilampaui. Pilih file yang lebih kecil.";
-                imageDataBase64 = null;
-                reject(new Error("File too large"));
-                return;
-            }
-
-            const reader = new FileReader();
-            
-            reader.onloadstart = () => {
-                fileNameDisplay.textContent = `Memproses... ${(file.size / 1024).toFixed(1)} KB.`;
-                generateBtn.disabled = true;
-            };
-
-            reader.onload = () => {
-                imageDataBase64 = reader.result;
-                fileNameDisplay.textContent = `File Terpilih: ${file.name}`; 
-                generateBtn.disabled = false;
-                resolve(reader.result);
-            };
-
-            reader.onerror = (error) => {
-                console.error("Gagal membaca file:", error);
-                imageDataBase64 = null;
-                fileNameDisplay.textContent = "Gagal memproses file.";
-                generateBtn.disabled = false;
-                reject(error);
-            };
-
-            reader.readAsDataURL(file);
-        });
-    }
+    // --- QR CODE LOGIC (Ditingkatkan) ---
 
     /**
      * Fungsi utama untuk menghasilkan QR Code.
@@ -187,13 +155,14 @@ const CodeGenerator = (function() {
         // Buat QR Code
         clearOutput('Sedang membuat QR Code...');
         
-        const loadingMessage = qrCodeOutput.querySelector('p');
-        if (loadingMessage) {
-            qrCodeOutput.removeChild(loadingMessage);
-        }
+        // Elemen kontainer untuk QR Code dan Logo
+        const qrContainer = document.createElement('div');
+        qrContainer.classList.add('qr-code-container'); // Tambahkan class untuk styling/penempatan logo
+        qrCodeOutput.appendChild(qrContainer);
 
+        // Elemen Div tempat QR Code akan dirender
         const tempDiv = document.createElement('div');
-        qrCodeOutput.appendChild(tempDiv);
+        qrContainer.appendChild(tempDiv);
 
         qrcodeInstance = new QRCode(tempDiv, {
             text: dataToEncode, 
@@ -201,61 +170,65 @@ const CodeGenerator = (function() {
             height: size,
             colorDark: color,
             colorLight: "#ffffff",
-            correctLevel: QRCode.CorrectLevel.H, // ⭐ Level Error Correction Tinggi untuk Logo
+            // ⭐️ PENTING: Level Error Correction Tinggi (H) agar mudah discan oleh Google Lens, 
+            // terutama saat ada logo yang menutupi bagian tengah.
+            correctLevel: QRCode.CorrectLevel.H, 
             margin: margin 
         });
 
-        // ⭐ LOGIKA LOGO BARU
+        // ⭐️ LOGIKA LOGO BARU
         if (logoDataBase64) {
             // Gunakan setTimeout untuk memastikan canvas sudah dirender sepenuhnya
             setTimeout(() => {
-                const canvas = qrCodeOutput.querySelector('canvas');
-                if (canvas) {
-                    const logo = document.createElement('img');
-                    logo.src = logoDataBase64;
-                    logo.classList.add('qr-logo');
-                    
-                    // Hitung ukuran logo (misalnya 20% dari ukuran QR Code)
-                    const logoSize = size * 0.20; 
-                    logo.style.width = `${logoSize}px`;
-                    logo.style.height = `${logoSize}px`;
-                    
-                    // Tambahkan logo ke container output utama
-                    qrCodeOutput.appendChild(logo);
-                }
+                const logo = document.createElement('img');
+                logo.src = logoDataBase64;
+                logo.classList.add('qr-logo');
+                
+                // Hitung ukuran logo (misalnya 25% dari ukuran QR Code)
+                const logoSize = size * 0.25; // Sedikit lebih besar
+                logo.style.width = `${logoSize}px`;
+                logo.style.height = `${logoSize}px`;
+                
+                // Tambahkan logo ke container
+                qrContainer.appendChild(logo);
             }, 100); 
         }
 
         // Aktivasi Download
         setTimeout(() => {
-            // Beri peringatan jika ada logo karena download canvas tidak menyertakan logo.
             downloadBtn.textContent = logoDataBase64 
                 ? '⚠️ Unduh QR (Tanpa Logo)'
                 : '📥 Unduh QR Code (.png)';
             downloadBtn.style.display = 'block';
             downloadBtn.disabled = false;
-        }, 150); 
-        
-        // --- 💡 Peningkatan AI (Contoh Analisis) ---
-        // Di sini kita bisa memanggil fungsi analisis untuk data dan desain.
-        // analyzeQRCodeQuality(dataToEncode, size, margin, color, logoDataBase64);
+        }, 200); // Waktu yang cukup untuk merender
     }
 
-    // --- BARCODE LOGIC (Tetap sama) ---
+    // --- BARCODE LOGIC (Perbaikan validasi) ---
 
     function validateBarcodeData(data, format) {
-        if (!data) return false;
+        if (!data) {
+            alert("Mohon masukkan data untuk Barcode.");
+            return false;
+        }
         
+        // Perbaikan validasi EAN13: 12 digit input + 1 digit checksum (dihitung oleh JsBarcode)
         if (format === 'EAN13' && !/^\d{12}$/.test(data)) {
-            alert("EAN13 membutuhkan tepat 12 digit numerik.");
+            alert("EAN13 membutuhkan tepat 12 digit numerik (digit ke-13 akan dihitung otomatis).");
             return false;
         }
 
         if (format === 'UPC' && !/^\d{11}$/.test(data)) {
-            alert("UPC membutuhkan tepat 11 digit numerik.");
+            alert("UPC membutuhkan tepat 11 digit numerik (digit ke-12 akan dihitung otomatis).");
             return false;
         }
-
+        
+        // Tambahkan validasi dasar untuk Code128, yang paling umum
+        if (format === 'CODE128' && data.length < 1) {
+            alert("CODE128 membutuhkan setidaknya 1 karakter.");
+            return false;
+        }
+        
         return true;
     }
 
@@ -274,24 +247,20 @@ const CodeGenerator = (function() {
 
         clearOutput('Sedang membuat Barcode...');
 
-        const loadingMessage = qrCodeOutput.querySelector('p');
-        if (loadingMessage) {
-            qrCodeOutput.removeChild(loadingMessage);
-        }
-
         const svgElement = document.createElementNS("http://www.w3.org/2000/svg", "svg");
         svgElement.id = "barcode-svg-output";
 
         qrCodeOutput.appendChild(svgElement);
 
         try {
+            // Lebar diatur agar sesuai kontainer, dan tinggi disesuaikan
             JsBarcode("#barcode-svg-output", dataToEncode, {
                 format: format,
                 displayValue: true,
                 text: dataToEncode,
                 lineColor: color,
-                width: 2, 
-                height: Math.floor(size / 2), 
+                width: 2, // Lebar batang
+                height: Math.floor(size / 2), // Tinggi batang
                 margin: margin
             });
 
@@ -301,7 +270,7 @@ const CodeGenerator = (function() {
 
         } catch (error) {
             console.error("Gagal membuat Barcode:", error);
-            clearOutput(`❌ Kesalahan: Format Barcode "${format}" tidak dapat mengolah data yang Anda masukkan.`);
+            clearOutput(`❌ Kesalahan: Format Barcode "${format}" tidak dapat mengolah data yang Anda masukkan. Pastikan data Anda valid.`);
         }
     }
 
@@ -311,7 +280,7 @@ const CodeGenerator = (function() {
         if (activeCodeType === 'qr') {
             const canvas = qrCodeOutput.querySelector('canvas');
             if (canvas) {
-                // Catatan: Jika ada logo, logo tidak akan ikut terunduh dalam PNG ini.
+                // Peringatan ini harus tetap ada karena logo tidak ikut terunduh dalam PNG ini.
                 if(logoDataBase64) {
                     alert("Perhatian: Karena keterbatasan, logo di tengah tidak akan ikut terunduh. Unduhan ini hanya berisi QR Code murni.");
                 }
@@ -328,6 +297,7 @@ const CodeGenerator = (function() {
                 alert("Kesalahan Unduh: QR Code Canvas tidak ditemukan.");
             }
         } else if (activeCodeType === 'barcode') {
+            // Logika Barcode SVG sudah baik
             const svg = qrCodeOutput.querySelector('svg');
             if (svg) {
                 const svgString = new XMLSerializer().serializeToString(svg);
@@ -360,10 +330,7 @@ const CodeGenerator = (function() {
 
     return {
         fileToBase64,
-        fileToBase64Logo, // ⭐ Export fungsi baru
         clearOutput,
-        generateQR,
-        generateBarcode,
         generateCode,
         downloadCode
     };
@@ -372,6 +339,8 @@ const CodeGenerator = (function() {
 
 // =================================================================
 // 2. MODUL: QR CODE SCANNER (INTEGRASI HTML5-QRCODE)
+// =================================================================
+// (Tidak ada perubahan signifikan pada scanner, logika sudah cukup baik)
 // =================================================================
 
 const QRScanner = (function() {
@@ -389,11 +358,6 @@ const QRScanner = (function() {
         console.log(`Pindai Sukses: ${decodedText}`);
         stopScanner(false);
         
-        // --- 💡 Peningkatan AI (Contoh: Analisis Konten) ---
-        // Di sini bisa ditambahkan logika untuk menganalisis data
-        // const analysisResult = analyzeScannedData(decodedText); 
-        // ... tampilkan hasil analisis ...
-
         // Beri Feedback Visual
         scannerFeed.innerHTML = `
             <div style="padding: 15px; background: #e6ffe6; border: 1px solid #28a745; border-radius: 8px;">
@@ -453,7 +417,7 @@ const QRScanner = (function() {
     }
     
     function restartScanner() {
-        stopScanner(true); 
+        stopScanner(false); // Jangan bersihkan output saat restart
         startScanner();
     }
 
@@ -471,15 +435,102 @@ const QRScanner = (function() {
 // =================================================================
 
 /**
+ * Logika navigasi Tab Utama.
+ * @param {string} type - 'generator' atau 'scanner'.
+ */
+function handleMainTab(type) {
+    // Navigasi Tab Utama
+    contentAreas.forEach(area => area.style.display = 'none');
+    tabButtons.forEach(btn => btn.classList.remove('active'));
+
+    const activeArea = document.getElementById(`${type}-content`);
+    if (activeArea) {
+        activeArea.style.display = 'block';
+    }
+    const activeButton = Array.from(tabButtons).find(btn => btn.dataset.tab === type);
+    if (activeButton) {
+        activeButton.classList.add('active');
+    }
+
+    // Kelola Scanner
+    if (type === 'scanner') {
+        QRScanner.startScanner();
+        CodeGenerator.clearOutput('Beralih ke Pemindai.');
+        downloadBtn.style.display = 'none';
+    } else {
+        QRScanner.stopScanner();
+    }
+}
+
+/**
+ * Logika navigasi Code Type (QR/Barcode) & Sub-Tab Input.
+ * @param {string} type - 'qr' atau 'barcode'.
+ */
+function handleCodeTab(type) {
+    activeCodeType = type;
+
+    // Navigasi Code Type
+    generatorContents.forEach(content => content.style.display = 'none');
+    codeTabButtons.forEach(btn => btn.classList.remove('active'));
+
+    const activeContent = document.getElementById(`${type}-generator-content`);
+    if (activeContent) activeContent.style.display = 'block';
+    const activeButton = Array.from(codeTabButtons).find(btn => btn.dataset.codeType === type);
+    if (activeButton) activeButton.classList.add('active');
+
+    // Tampilkan/Sembunyikan Kontrol Logo (Hanya untuk QR)
+    const logoControlSection = document.querySelector('.logo-control-section'); // Asumsi ada class ini di HTML
+    if (logoControlSection) {
+         logoControlSection.style.display = type === 'qr' ? 'block' : 'none';
+    }
+    
+    // Defaultkan ke 'text' saat beralih ke QR
+    if (type === 'qr') {
+        handleSubTab('text');
+    } else {
+        // Bersihkan output saat beralih tipe
+        CodeGenerator.clearOutput();
+    }
+}
+
+/**
+ * Logika navigasi Sub-Tab Input (Text/Image).
+ * @param {string} type - 'text' atau 'image'.
+ */
+function handleSubTab(type) {
+    activeInputType = type;
+
+    // Navigasi Sub-Tab
+    inputContents.forEach(content => content.style.display = 'none');
+    subTabButtons.forEach(btn => btn.classList.remove('active'));
+
+    const activeContent = document.getElementById(`qr-${type}-input`);
+    if (activeContent) activeContent.style.display = 'block';
+    const activeButton = Array.from(subTabButtons).find(btn => btn.dataset.inputType === type);
+    if (activeButton) activeButton.classList.add('active');
+    
+    // Kelola Logo Control: hanya tampil saat input adalah Teks (karena Image Data sudah Base64)
+    const logoControlSection = document.querySelector('.logo-control-section'); 
+    if (logoControlSection) {
+        // Tampilkan logo control di sub-tab text, sembunyikan di sub-tab image
+        logoControlSection.style.display = type === 'text' ? 'block' : 'none';
+    }
+    
+    // Clear/Regenerate
+    CodeGenerator.clearOutput();
+}
+
+
+/**
  * Menginisialisasi semua event listener setelah DOM dimuat.
  */
 function initEventListeners() {
     
-    // --- 3.1 Event Listener Generator ---
+    // --- 3.1 Event Listener Generator & Download ---
     generateBtn.addEventListener('click', CodeGenerator.generateCode);
     downloadBtn.addEventListener('click', CodeGenerator.downloadCode);
     
-    // Trigger generate saat 'Enter' di input text yang aktif
+    // ... Event Listener Keyup (sama seperti sebelumnya) ...
     qrInputText.addEventListener('keyup', (event) => {
         if (activeCodeType === 'qr' && activeInputType === 'text' && event.key === 'Enter') {
             CodeGenerator.generateCode();
@@ -491,14 +542,18 @@ function initEventListeners() {
         }
     });
 
-    // --- 3.2 Logika Input Gambar Data QR (Async) (Tetap) ---
+    // --- 3.2 Logika Input Gambar Data QR (Async) (DITINGKATKAN) ---
     qrInputImage.addEventListener('change', async (event) => {
         const file = event.target.files[0];
         if (file) {
             try {
-                await CodeGenerator.fileToBase64(file); 
+                // Gunakan fungsi fileToBase64 yang ditingkatkan
+                imageDataBase64 = await CodeGenerator.fileToBase64(file, MAX_SIZE_BYTES_QR_DATA, fileNameDisplay, 'data'); 
                 if (imageDataBase64) CodeGenerator.generateQR(); 
             } catch (error) {
+                // Reset state
+                qrInputImage.value = "";
+                imageDataBase64 = null;
                 CodeGenerator.clearOutput();
             }
         } else {
@@ -508,19 +563,28 @@ function initEventListeners() {
         }
     });
     
-    // ⭐ LOGIKA BARU: Input Logo Kustom (Async) ---
+    // --- LOGIKA INPUT LOGO KUSTOM (Async) (DITINGKATKAN) ---
     qrInputLogo.addEventListener('change', async (event) => {
         const file = event.target.files[0];
         if (file) {
             try {
-                await CodeGenerator.fileToBase64Logo(file); 
+                // Gunakan fungsi fileToBase64 yang ditingkatkan
+                logoDataBase64 = await CodeGenerator.fileToBase64(file, MAX_SIZE_BYTES_LOGO, logoFileNameDisplay, 'logo'); 
+                
                 // Jika QR Code sudah ditampilkan, generate ulang untuk menampilkan logo
                 const isCodeDisplayed = qrCodeOutput.querySelector('canvas');
                 if (isCodeDisplayed) {
                     CodeGenerator.generateQR(); 
                 }
             } catch (error) {
-                 logoFileNameDisplay.textContent = "Gagal memproses logo.";
+                // Reset state
+                qrInputLogo.value = "";
+                logoDataBase64 = null;
+                // Jika kode sedang tampil, generate ulang agar logo hilang
+                const isCodeDisplayed = qrCodeOutput.querySelector('canvas');
+                if (isCodeDisplayed) {
+                    CodeGenerator.generateQR(); 
+                }
             }
         } else {
             // Jika logo dihapus/dibatalkan
@@ -535,75 +599,22 @@ function initEventListeners() {
     });
     // End Logika Input Logo Kustom ---
 
-    // --- 3.3 Navigasi Tab Utama (Generator/Scanner) (Tetap) ---
+    // --- 3.3 Navigasi Tab Listener ---
     tabButtons.forEach(button => {
-        button.addEventListener('click', (event) => {
-            const targetTab = event.currentTarget.dataset.tab;
-
-            tabButtons.forEach(btn => btn.classList.remove('active'));
-            contentAreas.forEach(area => area.classList.remove('active'));
-
-            document.getElementById(targetTab).classList.add('active');
-            event.currentTarget.classList.add('active');
-
-            if (targetTab === 'generator') {
-                QRScanner.stopScanner(); 
-                CodeGenerator.clearOutput();
-            } else if (targetTab === 'scanner') {
-                CodeGenerator.clearOutput();
-                QRScanner.startScanner(); 
-            }
-        });
+        button.addEventListener('click', () => handleMainTab(button.dataset.tab));
     });
-
-    // --- 3.4 Navigasi Tab Jenis Kode (QR/Barcode) ---
     codeTabButtons.forEach(button => {
-        button.addEventListener('click', (event) => {
-            const targetCode = event.currentTarget.dataset.codeType;
-            activeCodeType = targetCode;
-
-            codeTabButtons.forEach(btn => btn.classList.remove('active'));
-            event.currentTarget.classList.add('active');
-
-            generatorContents.forEach(content => content.classList.remove('active'));
-            document.getElementById(`generator-${targetCode}`).classList.add('active');
-            
-            // ⭐ LOGIKA TAMBAHAN: Atur visibilitas input logo berdasarkan jenis kode
-            if (targetCode === 'qr') {
-                logoControlSection.style.display = 'block'; // Tampilkan saat QR Code
-            } else {
-                logoControlSection.style.display = 'none'; // Sembunyikan saat Barcode
-            }
-
-            CodeGenerator.clearOutput();
-            
-            if (targetCode === 'qr') qrInputText.focus();
-            else barcodeInputText.focus();
-        });
+        button.addEventListener('click', () => handleCodeTab(button.dataset.codeType));
     });
-
-    // --- 3.5 Navigasi Sub-Tab QR (Teks/Gambar) (Tetap) ---
     subTabButtons.forEach(button => {
-        button.addEventListener('click', (event) => {
-            const targetInput = event.currentTarget.dataset.input; 
-            activeInputType = targetInput;
-
-            subTabButtons.forEach(btn => btn.classList.remove('active'));
-            event.currentTarget.classList.add('active');
-
-            inputContents.forEach(content => content.classList.remove('active'));
-            document.getElementById(`input-${targetInput}`).classList.add('active');
-
-            CodeGenerator.clearOutput();
-            if (targetInput === 'text') qrInputText.focus();
-        });
+        button.addEventListener('click', () => handleSubTab(button.dataset.inputType));
     });
     
-    // --- 3.6 Logika Kontrol Desain (Membuat kode reaktif) (Tambahkan logo check) ---
-    const designInputs = [qrColorInput, qrSizeInput, qrMarginInput, barcodeFormat, barcodeInputText];
-    designInputs.forEach(input => {
+    // 3.4 Event Listener Perubahan Desain
+    [qrSizeInput, qrColorInput, qrMarginInput, barcodeFormat].forEach(input => {
         input.addEventListener('change', () => {
-            // Validasi ukuran dan margin
+            
+            // Perbaikan: Tambahkan validasi min/max saat mengubah ukuran/margin
             if (input === qrSizeInput) {
                 let size = parseInt(qrSizeInput.value) || 256;
                 qrSizeInput.value = Math.max(100, Math.min(500, size));
@@ -613,7 +624,7 @@ function initEventListeners() {
                 qrMarginInput.value = Math.max(0, Math.min(20, margin));
             }
             
-            // Regenerate jika kode sudah ada (dengan pengecekan yang lebih baik)
+            // Regenerate jika kode sudah ada
             const isCodeDisplayed = qrCodeOutput.querySelector('canvas') || qrCodeOutput.querySelector('svg');
 
             if (isCodeDisplayed) {
@@ -621,6 +632,11 @@ function initEventListeners() {
             }
         });
     });
+
+    // Inisiasi awal: Pastikan tab pertama aktif
+    handleMainTab('generator'); 
+    handleCodeTab('qr');
+    handleSubTab('text');
 }
 
 // Jalankan inisiasi setelah seluruh DOM dimuat

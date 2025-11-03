@@ -6,7 +6,7 @@
 }
 
 /* Import Font */
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
 
 /* Variabel CSS untuk Kustomisasi Mudah */
 :root {
@@ -14,6 +14,7 @@
     --primary-color: #007bff; /* Biru cerah untuk aksi utama */
     --secondary-color: #28a745; /* Hijau untuk tombol Generate */
     --tertiary-color: #6c757d; /* Abu-abu untuk teks / batas */
+    --accent-color: #ffc107; /* Kuning untuk logo/highlight sekunder */
     --background-light: #f7f9fc; /* Latar belakang aplikasi yang sangat ringan */
     --container-bg: #ffffff;
     --text-dark: #212529;
@@ -21,19 +22,45 @@
     --border-light: #e9ecef; /* Border yang sangat halus */
     --shadow-base: rgba(0, 0, 0, 0.1); /* Bayangan modern */
     --warning-red: #dc3545;
-    --logo-color: #ffc107; /* Warna baru untuk tombol logo */
 }
 
 body {
     font-family: 'Inter', sans-serif;
     background-color: var(--background-light);
+    
+    /* ⭐️ PERBAIKAN FLEXXBOX UNTUK MOBILE/RESPONSIVE */
     display: flex;
-    justify-content: center;
-    align-items: center; 
+    flex-direction: column; /* Menumpuk Header dan Container secara vertikal */
+    justify-content: flex-start; /* Mulai konten dari bagian atas layar */
+    align-items: center; /* Tetap pusatkan konten secara horizontal */
+    
     min-height: 100vh;
     padding: 30px 20px; 
     line-height: 1.6;
     color: var(--text-dark);
+}
+
+/* --- HEADER BARU --- */
+header {
+    width: 100%;
+    max-width: 650px;
+    margin-bottom: 20px;
+    text-align: center;
+    padding: 0 10px; /* Tambahkan padding horizontal agar judul tidak menempel di tepi layar */
+}
+
+header h1 {
+    font-size: 2.5em;
+    font-weight: 800;
+    color: var(--primary-color);
+    letter-spacing: -1px;
+    margin-bottom: 5px;
+}
+
+.tagline {
+    color: var(--text-muted);
+    font-size: 1.1em;
+    margin-bottom: 0;
 }
 
 /* Container Utama */
@@ -50,7 +77,8 @@ body {
 /* Judul dan Sub-Judul */
 h2 {
     color: var(--primary-color);
-    margin-bottom: 10px;
+    margin-top: 0;
+    margin-bottom: 15px;
     font-size: 1.8em;
     font-weight: 700;
     letter-spacing: -0.5px;
@@ -62,6 +90,7 @@ h3 {
     margin-bottom: 15px;
     font-size: 1.3em;
     font-weight: 600;
+    /* ⭐ Style modern: Border vertikal */
     border-left: 4px solid var(--primary-color);
     padding-left: 10px;
 }
@@ -98,6 +127,7 @@ hr {
     background-color: var(--border-light);
     border-radius: 12px;
     padding: 5px;
+    box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.1);
 }
 
 .tab-button {
@@ -110,13 +140,14 @@ hr {
     font-weight: 600;
     color: var(--text-muted);
     border-radius: 10px; 
-    transition: all 0.3s ease; 
+    transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); /* Animasi pegas */
 }
 
 .tab-button.active {
     background-color: var(--container-bg); 
     color: var(--primary-color);
     box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+    transform: translateY(-2px);
 }
 
 .tab-button:hover:not(.active) {
@@ -147,10 +178,12 @@ hr {
     color: white;
     border-color: var(--primary-color);
     font-weight: 600;
+    box-shadow: 0 3px 10px rgba(0, 123, 255, 0.2);
 }
 
 .code-tab-button:hover:not(.active) {
     border-color: var(--primary-color);
+    transform: translateY(-1px);
 }
 
 /* Konten Generator QR/Barcode */
@@ -163,10 +196,11 @@ hr {
     display: flex;
     margin-bottom: 20px;
     gap: 20px;
+    border-bottom: 1px solid var(--border-light);
 }
 
 .sub-tab-button {
-    padding: 8px 0;
+    padding: 8px 0 12px 0;
     border: none;
     background-color: transparent;
     cursor: pointer;
@@ -175,11 +209,13 @@ hr {
     color: var(--text-muted);
     transition: color 0.3s, border-bottom 0.3s;
     border-bottom: 3px solid transparent;
+    position: relative;
+    top: 1px; /* Mengimbangi border bawah agar tab tidak "melompat" */
 }
 
 .sub-tab-button.active {
     color: var(--primary-color);
-    font-weight: 600;
+    font-weight: 700;
     border-bottom: 3px solid var(--primary-color);
 }
 
@@ -231,8 +267,8 @@ hr {
     
     border-radius: 10px;
     cursor: pointer;
-    font-weight: bold;
-    transition: background-color 0.3s, transform 0.1s, box-shadow 0.3s;
+    font-weight: 700;
+    transition: background-color 0.3s, box-shadow 0.3s;
 }
 
 /* Style untuk label input Gambar Data QR (Biru Primer) */
@@ -246,9 +282,9 @@ hr {
     box-shadow: 0 5px 15px rgba(0, 123, 255, 0.3);
 }
 
-/* ⭐ STYLE BARU: Label input Logo (Kuning Sekunder) */
+/* ⭐️ STYLE BARU: Label input Logo (Kuning Sekunder) */
 .file-label-logo {
-    background-color: var(--logo-color); 
+    background-color: var(--accent-color); 
     color: var(--text-dark);
     box-shadow: 0 5px 15px rgba(255, 193, 7, 0.1);
 }
@@ -277,9 +313,15 @@ hr {
     border-radius: 8px;
     margin-top: 15px;
     font-style: italic;
+    font-weight: 500;
 }
 
-.logo-warning-text {
+/* ⭐ Perbaikan untuk pesan konfirmasi logo */
+.logo-control-section .warning-text {
+    color: var(--secondary-color);
+    border-left: 4px solid var(--secondary-color);
+    background-color: rgba(40, 167, 69, 0.05);
+    font-style: normal;
     margin-top: 10px;
     padding: 8px 12px;
 }
@@ -296,10 +338,17 @@ hr {
 .control-section {
     flex: 1;
     min-width: 45%; 
-    padding: 10px;
+    padding: 20px; /* Padding lebih besar */
     border: 1px solid var(--border-light);
-    border-radius: 10px;
+    border-radius: 12px;
     background-color: var(--background-light);
+    transition: all 0.3s ease;
+}
+
+/* ⭐ Kelas baru: Kontrol Logo disembunyikan jika tidak aktif melalui JS */
+.logo-control-section {
+    /* JavaScript akan mengontrol display: none/block */
+    padding-bottom: 0; /* Kurangi padding bawah karena ada status file */
 }
 
 .control-item {
@@ -318,7 +367,7 @@ hr {
 /* Style input number dan color */
 .controls-group input[type="number"],
 .controls-group input[type="color"] {
-    border: 1px solid var(--tertiary-color);
+    border: 1px solid var(--border-light);
     border-radius: 6px;
     transition: border-color 0.3s;
     outline: none;
@@ -394,7 +443,7 @@ hr {
     display: flex;
     justify-content: center;
     align-items: center;
-    min-height: 280px; 
+    min-height: 300px; /* Tinggi minimum yang bagus */
     margin: 30px 0 20px 0;
     padding: 20px;
     background-color: var(--container-bg);
@@ -405,13 +454,14 @@ hr {
     font-style: italic;
     font-weight: 500;
     transition: all 0.5s ease-in-out;
-    position: relative; /* Wajib: Untuk memposisikan logo di tengah */
+    position: relative; 
 }
 
-/* Tampilan ketika output kosong */
-#qr-code-output p {
-    margin: 0;
-    padding: 20px;
+/* ⭐ KONTEN QR CODE CONTAINER (diinjeksikan oleh JS) */
+#qr-code-output .qr-code-container {
+    position: relative; 
+    display: inline-block;
+    padding: 10px; /* Padding di sekitar QR Code canvas/logo */
 }
 
 /* Tampilan untuk Canvas QR Code */
@@ -422,7 +472,6 @@ hr {
     border-radius: 8px;
     box-shadow: 0 5px 20px rgba(0, 0, 0, 0.15); 
     border: 1px solid var(--border-light);
-    position: relative; /* Agar logo bisa diposisikan di atasnya */
 }
 
 /* Tampilan untuk SVG Barcode */
@@ -433,34 +482,32 @@ hr {
     border-radius: 8px;
     box-shadow: 0 5px 20px rgba(0, 0, 0, 0.15); 
     border: 1px solid var(--border-light);
-    padding: 10px; 
+    padding: 20px; 
     background-color: white;
 }
 
-/* ⭐ STYLE BARU: Logo di Tengah QR Code */
+/* ⭐ STYLE BARU PENTING: Logo di Tengah QR Code */
 .qr-logo {
     position: absolute;
     top: 50%;
     left: 50%; 
     transform: translate(-50%, -50%); /* Memastikan posisi tepat di tengah */
-    z-index: 10; /* Logo berada di lapisan teratas */
+    z-index: 10; 
     
     /* Styling Visual Logo */
     border-radius: 10%; 
-    background-color: white; /* Padding putih di sekeliling logo */
-    padding: 5px; 
-    box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+    background-color: white; 
+    padding: 8px; /* Padding putih yang lebih tebal di sekeliling logo */
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
     
-    /* Ukuran akan dikontrol via JavaScript, tetapi ini adalah batasnya */
-    max-width: 20%; 
-    max-height: 20%;
-    object-fit: contain; /* Memastikan gambar logo tidak terdistorsi */
+    /* Ukuran diatur oleh JS (25% dari QR), tetapi properti ini penting */
+    object-fit: contain; 
 }
 
 /* --- Area Scanner --- */
 #scanner-feed {
     width: 100%;
-    min-height: 350px; 
+    min-height: 400px; /* Lebih tinggi untuk pengalaman pemindaian yang lebih baik */
     background-color: #343a40; 
     border-radius: 15px;
     overflow: hidden;
@@ -494,10 +541,25 @@ hr {
 
 /* --- RESPONSIVITAS --- */
 @media (max-width: 700px) {
+    /* ⭐️ PERBAIKAN: Ubah alignment body */
     body {
         padding: 15px;
-        align-items: flex-start;
+        /* Hapus 'align-items: flex-start;' di sini karena sudah diatur di luar media query */
     }
+
+    /* ⭐️ PERBAIKAN: Perilaku header di mobile */
+    header {
+        margin-bottom: 10px; /* Kurangi margin bawah header */
+    }
+
+    header h1 {
+        font-size: 1.8em; /* Dikecilkan dari 2.5em agar muat */
+    }
+    
+    .tagline {
+        font-size: 0.95em; /* Dikecilkan agar pas */
+    }
+    
     .container {
         padding: 25px;
         border-radius: 15px;
@@ -515,6 +577,7 @@ hr {
     
     .control-section {
         min-width: 100%;
+        padding: 15px;
     }
 
     .sub-tabs {
@@ -524,10 +587,15 @@ hr {
     .sub-tab-button {
         flex: 1;
         text-align: center;
+        padding: 8px 0;
     }
 
     .tab-button, .code-tab-button, .main-button, .sub-button {
         font-size: 0.95em;
         padding: 12px 10px;
+    }
+
+    #qr-code-output {
+        min-height: 250px;
     }
 }
